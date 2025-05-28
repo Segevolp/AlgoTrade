@@ -1,24 +1,43 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
+
+from Services.lstm_model_service import train_model, predict_next_days
 
 app = Flask(__name__)
+CORS(app)
 
-@app.route('/')
-def home():
-    return "Hello from Flask!"
 
-@app.route('/prophet/returns')
-def prophet_get_returns():
-    # taking arguments
-    data = request.json
-    # fetch specific argument from json: data["arg name"]
+@app.route('/hello')
+def hello():
+    return jsonify({'success': True, 'message': 'Hello World!'})
 
-    # returns = call backend logic
-    returns = ""
 
-    # Convert to JSON serializable format
-    returns_json = returns.reset_index().rename(columns={"Date": "ds", "Adj Close": "y"}).to_dict(orient="records")
-    return jsonify(returns_json)
+@app.route('/lstm/train', methods=['POST'])
+def train_lstm():
+    try:
+        data = request.get_json()
+        ticker = data.get('ticker', '^GSPC')
+        start = data.get('start', '2010-01-01')
+        end = data.get('end', '2025-05-22')
+        sequence_length = data.get('sequence_length', 60)
+
+        success = train_model(ticker=ticker, start=start, end=end, sequence_length=sequence_length)
+        return jsonify({'success': success})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+
+@app.route('/lstm/predict', methods=['GET'])
+def predict_lstm():
+    try:
+        days = int(request.args.get('days', 20))
+        sequence_length = int(request.args.get('sequence_length', 60))
+
+        forecast = predict_next_days(days=days, sequence_length=sequence_length)
+        return jsonify({'success': True, 'data': forecast})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, port=5555)
