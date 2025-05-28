@@ -1,24 +1,29 @@
-from flask import Flask, request, jsonify
+from fastapi import FastAPI, Query
+from fastapi.middleware.cors import CORSMiddleware
+from lstm_model_service import train_model, predict_next_days, get_cached_forecast
 
 app = Flask(__name__)
 
-@app.route('/')
+
+
+@app.get("/")
 def home():
-    return "Hello from Flask!"
+    return {"message": "Hello from FastAPI"}
 
-@app.route('/prophet/returns')
-def prophet_get_returns():
-    # taking arguments
-    data = request.json
-    # fetch specific argument from json: data["arg name"]
+@app.post("/train")
+def train():
+    success = train_model()
+    if success:
+        return {"message": "Model trained and saved successfully."}
+    return {"error": "Training failed."}
 
-    # returns = call backend logic
-    returns = ""
+@app.get("/predict")
+def predict(days: int = Query(20, gt=0, le=60)):
+    return predict_next_days(days)
 
-    # Convert to JSON serializable format
-    returns_json = returns.reset_index().rename(columns={"Date": "ds", "Adj Close": "y"}).to_dict(orient="records")
-    return jsonify(returns_json)
-
-
-if __name__ == '__main__':
-    app.run(debug=True)
+@app.get("/cached-forecast")
+def cached():
+    data = get_cached_forecast()
+    if data:
+        return data
+    return {"error": "No cached forecast available."}
