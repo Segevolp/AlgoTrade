@@ -88,8 +88,8 @@ def train_model(ticker: str = '^GSPC',
     train_X, test_X = X[:split], X[split:]
 
     # 3. Grid search over orders
-    p_range = d_range = q_range = range(0, 2)
-    P_range = D_range = Q_range = range(0, 1)
+    p_range = d_range = q_range = range(0, 3)
+    P_range = D_range = Q_range = range(0, 2)
     m = 7  # weekly seasonality
 
     best_mse = np.inf
@@ -208,3 +208,5 @@ def predict_next_days(days: int = 10) -> dict:
         'forecast_ci_lower': forecast_ci.iloc[:, 0].tolist(),
         'forecast_ci_upper': forecast_ci.iloc[:, 1].tolist()
     }
+
+
