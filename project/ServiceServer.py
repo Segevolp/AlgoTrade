@@ -31,11 +31,20 @@ def train_lstm():
 @app.route('/lstm/predict', methods=['GET'])
 def predict_lstm():
     try:
+        ticker = request.args.get('ticker', '^GSPC')
         days = int(request.args.get('days', 20))
         sequence_length = int(request.args.get('sequence_length', 60))
 
-        forecast = predict_next_days(days=days, sequence_length=sequence_length)
+        forecast = predict_next_days(ticker=ticker, days=days, sequence_length=sequence_length)
         return jsonify({'success': True, 'data': forecast})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/lstm/models', methods=['GET'])
+def list_lstm_models():
+    from Services.lstm_model_service import list_trained_models
+    try:
+        return jsonify({'success': True, 'tickers': list_trained_models()})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 

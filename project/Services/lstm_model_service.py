@@ -17,6 +17,9 @@ FORECAST_PATH = os.path.join(MODELS_DIR, "forecast.json")
 os.makedirs(MODELS_DIR, exist_ok=True)
 
 def train_model(ticker='^GSPC', start='2010-01-01', end='2025-05-22', sequence_length=60):
+    stock_dir = os.path.join(MODELS_DIR, ticker.replace("^", "").replace("/", "_"))
+    os.makedirs(stock_dir, exist_ok=True)
+
     df = yf.download(ticker, start=start, end=end)[['Close']].dropna()
     df['change'] = df['Close'].pct_change()
 
@@ -33,8 +36,8 @@ def train_model(ticker='^GSPC', start='2010-01-01', end='2025-05-22', sequence_l
     scaled = scaler.fit_transform(df)
 
     # Save data
-    pd.DataFrame(scaled, index=df.index).to_csv(DATA_PATH)
-    joblib.dump(scaler, SCALER_PATH)
+    pd.DataFrame(scaled, index=df.index).to_csv(os.path.join(stock_dir, "data.csv"))
+    joblib.dump(scaler, os.path.join(stock_dir, "scaler.pkl"))
 
     # Build sequences
     X, y = [], []
@@ -56,17 +59,18 @@ def train_model(ticker='^GSPC', start='2010-01-01', end='2025-05-22', sequence_l
     model.compile(optimizer='adam', loss='mean_squared_error')
     model.fit(X_train, y_train, epochs=20, batch_size=32, verbose=1)
 
-    model.save(MODEL_PATH)
+    model.save(os.path.join(stock_dir, "model.h5"))
     return True
 
-def load_state():
-    model = load_model(MODEL_PATH)
-    scaler = joblib.load(SCALER_PATH)
-    df = pd.read_csv(DATA_PATH, index_col=0, parse_dates=True)
+def load_state(ticker):
+    stock_dir = os.path.join(MODELS_DIR, ticker.replace("^", "").replace("/", "_"))
+    model = load_model(os.path.join(stock_dir, "model.h5"))
+    scaler = joblib.load(os.path.join(stock_dir, "scaler.pkl"))
+    df = pd.read_csv(os.path.join(stock_dir, "data.csv"), index_col=0, parse_dates=True)
     return model, scaler, df
 
-def predict_next_days(days=20, sequence_length=60):
-    model, scaler, df = load_state()
+def predict_next_days(ticker='^GSPC', days=20, sequence_length=60):
+    model, scaler, df = load_state(ticker)
     scaled = scaler.transform(df)
 
     forecast_input = scaled[-sequence_length:].copy()
@@ -86,9 +90,6 @@ def predict_next_days(days=20, sequence_length=60):
     last_date = df.index[-1]
     forecast_dates = pd.date_range(start=last_date + pd.Timedelta(days=1), periods=days, freq='B')
 
-    # Optional: save forecast to disk to reuse
-    pd.DataFrame({"date": forecast_dates, "price": forecast_prices}).to_json(FORECAST_PATH, orient="records", date_format="iso")
-
     return {
         "dates": forecast_dates.strftime('%Y-%m-%d').tolist(),
         "forecast": forecast_prices.tolist()
@@ -98,3 +99,7 @@ def get_cached_forecast():
     if os.path.exists(FORECAST_PATH):
         return pd.read_json(FORECAST_PATH).to_dict(orient="list")
     return None
+
+def list_trained_models():
+    return [name for name in os.listdir(MODELS_DIR)
+            if os.path.isdir(os.path.join(MODELS_DIR, name))]

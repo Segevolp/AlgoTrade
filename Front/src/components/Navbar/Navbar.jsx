@@ -16,7 +16,7 @@ import LightModeIcon from "@mui/icons-material/LightMode";
 const tabs = [
   { label: "Home", path: "/" },
   { label: "LSTM", path: "/lstm" },
-  { label: "Algo2", path: "/algo2" },
+  { label: "ARIMA", path: "/arima" },
   { label: "Algo3", path: "/algo3" },
   { label: "Algo4", path: "/algo4" },
 ];

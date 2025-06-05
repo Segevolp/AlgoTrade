@@ -1,1 +1,1 @@
-{"ticker": "^GSPC", "start": "2022-01-01", "end": "2025-06-05", "exog_tickers": ["GLD", "QQQ", "^TNX"], "best_params": {"order": [1, 1, 1], "seasonal_order": [0, 0, 0, 7]}}
+{"ticker": "SPY", "start": "2020-01-01", "end": "2025-04-08", "exog_tickers": ["GLD", "QQQ", "^TNX"], "best_params": {"order": [1, 0, 0], "seasonal_order": [0, 0, 0, 7]}}
