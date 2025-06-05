@@ -41,49 +41,28 @@ def predict_lstm():
 
 
 @app.route('/arima/train', methods=['POST'])
-def train_arima_endpoint():
-    """
-    Expects a JSON POST body like:
-    {
-      "main_ticker": "^GSPC",
-      "exog_tickers": ["GLD","^TYX","QQQ"],
-      "start": "2020-01-01",
-      "end": "2025-04-08"
-    }
-    All keys are optional (defaults are set inside train_arima).
-    """
+def train_arima_route():
     try:
         data = request.get_json() or {}
-        main_ticker = data.get('main_ticker', '^GSPC')
-        exog_tickers = data.get('exog_tickers', ["GLD", "^TYX", "QQQ"])
+        ticker = data.get('ticker', '^GSPC')
         start = data.get('start', '2020-01-01')
         end = data.get('end', '2025-04-08')
+        exog_tickers = data.get('exog_tickers', ['GLD', 'QQQ', '^TNX'])
 
-        # We’re using the default grid-search ranges inside train_arima unless you decide to pass them explicitly.
-        success = train_arima(
-            main_ticker=main_ticker,
-            exog_tickers=exog_tickers,
-            start=start,
-            end=end,
-            # You could also pass custom p_range, d_range, etc. as additional kwargs here if you want.
-        )
+        success = train_arima(ticker=ticker, start=start, end=end, exog_tickers=exog_tickers)
         return jsonify({'success': success})
     except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
+        return jsonify({'success': False, 'error': str(e)})
 
 
 @app.route('/arima/predict', methods=['GET'])
-def predict_arima_endpoint():
-    """
-    Expects query string ?days=<int> 
-    (e.g. /arima/predict?days=10)
-    """
+def predict_arima_route():
     try:
         days = int(request.args.get('days', 10))
         forecast = predict_arima(days=days)
         return jsonify({'success': True, 'data': forecast})
     except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
+        return jsonify({'success': False, 'error': str(e)})
 
 if __name__ == '__main__':
     app.run(debug=True, port=5555)
