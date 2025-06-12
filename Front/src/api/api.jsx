@@ -74,3 +74,29 @@ export const predictARIMA = async (days = 10) => {
     return { success: false, error: err.message };
   }
 };
+export const trainProphet = async (params = {}) => {
+  try {
+    const response = await axios.post(`${API_BASE}/prophet/train`, {
+      ticker: params.ticker || "^GSPC",
+      start: params.start || "2015-01-01",
+      end: params.end || "2025-05-22",
+    });
+    return response.data;
+  } catch (err) {
+    console.error("Train Prophet error:", err);
+    return { success: false, error: err.message };
+  }
+};
+
+export const predictProphet = async (days = 10) => {
+  try {
+    const response = await axios.get(`${API_BASE}/prophet/predict`, {
+      params: { days },
+    });
+    return response.data;
+  } catch (err) {
+    console.error("Predict Prophet error:", err);
+    return { success: false, error: err.message };
+  }
+};
+

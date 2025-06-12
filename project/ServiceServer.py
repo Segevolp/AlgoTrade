@@ -3,6 +3,7 @@ from flask_cors import CORS
 
 from Services.lstm_model_service import train_model, predict_next_days
 from Services.arima_model_service import train_model as train_arima, predict_next_days as predict_arima
+from Services.prophet_model_service import train_model as train_prophet, predict_next_days as predict_prophet
 
 app = Flask(__name__)
 CORS(app)
@@ -12,7 +13,7 @@ CORS(app)
 def hello():
     return jsonify({'success': True, 'message': 'Hello World!'})
 
-
+# -------------------- LSTM --------------------
 @app.route('/lstm/train', methods=['POST'])
 def train_lstm():
     try:
@@ -48,7 +49,7 @@ def list_lstm_models():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
-
+# -------------------- ARIMA -------------------
 @app.route('/arima/train', methods=['POST'])
 def train_arima_route():
     try:
@@ -72,6 +73,27 @@ def predict_arima_route():
         return jsonify({'success': True, 'data': forecast})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
+# -------------------- Prophet --------------------
+@app.route('/prophet/train', methods=['POST'])
+def train_prophet_route():
+    try:
+        data = request.get_json() or {}
+        ticker = data.get('ticker', '^GSPC')
+        start = data.get('start', '2015-01-01')
+        end = data.get('end', '2025-05-22')
 
+        success = train_prophet(ticker=ticker, start=start, end=end)
+        return jsonify({'success': success})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/prophet/predict', methods=['GET'])
+def predict_prophet_route():
+    try:
+        days = int(request.args.get('days', 10))
+        forecast = predict_prophet(days=days)
+        return jsonify({'success': True, 'data': forecast})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
 if __name__ == '__main__':
     app.run(debug=True, port=5555)

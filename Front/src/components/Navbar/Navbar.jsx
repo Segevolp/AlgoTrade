@@ -17,7 +17,7 @@ const tabs = [
   { label: "Home", path: "/" },
   { label: "LSTM", path: "/lstm" },
   { label: "ARIMA", path: "/arima" },
-  { label: "Algo3", path: "/algo3" },
+  { label: "Prophet", path: "/Prophet" },
   { label: "Algo4", path: "/algo4" },
 ];
 
