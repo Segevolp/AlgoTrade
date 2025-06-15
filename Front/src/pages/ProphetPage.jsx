@@ -26,12 +26,12 @@ const ProphetPage = () => {
     ticker: "^GSPC",
     start: "2015-01-01",
     end: "2025-05-22",
-    predict_days: 10,
+    predict_days: 20,
   });
 
+  const [loading, setLoading] = useState(false);
   const [trainResult, setTrainResult] = useState(null);
   const [predictResult, setPredictResult] = useState(null);
-  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -59,7 +59,7 @@ const ProphetPage = () => {
   return (
     <Container maxWidth="sm" sx={{ mt: 4 }}>
       <Typography variant="h4" gutterBottom>
-        Prophet Training & Prediction
+        Prophet Forecasting
       </Typography>
 
       {loading && (
@@ -114,25 +114,27 @@ const ProphetPage = () => {
               onChange={handleChange}
             />
           </Grid>
-          <Grid item xs={12}>
-            <Box display="flex" gap={2}>
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={handleTrain}
-                disabled={loading}
-              >
-                {loading ? <CircularProgress size={24} /> : "Train"}
-              </Button>
-              <Button
-                variant="outlined"
-                color="secondary"
-                onClick={handlePredict}
-                disabled={loading || !trainResult?.success}
-              >
-                Predict
-              </Button>
-            </Box>
+          <Grid item xs={6}>
+            <Button
+              variant="contained"
+              color="primary"
+              fullWidth
+              onClick={handleTrain}
+              disabled={loading}
+            >
+              {loading ? <CircularProgress size={24} /> : "Train"}
+            </Button>
+          </Grid>
+          <Grid item xs={6}>
+            <Button
+              variant="contained"
+              color="secondary"
+              fullWidth
+              onClick={handlePredict}
+              disabled={loading}
+            >
+              {loading ? <CircularProgress size={24} /> : "Predict"}
+            </Button>
           </Grid>
         </Grid>
       </Box>
@@ -150,42 +152,24 @@ const ProphetPage = () => {
       {predictResult?.success && (
         <Box mt={4}>
           <Typography variant="h6" gutterBottom>
-            Forecast Results
+            Prophet Forecast Results:
           </Typography>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart
               data={predictResult.data.dates.map((date, idx) => ({
                 date,
-                forecast: predictResult.data.forecast_mean[idx],
-                lower: predictResult.data.forecast_ci_lower[idx],
-                upper: predictResult.data.forecast_ci_upper[idx],
+                forecast: predictResult.data.forecast[idx],
+                upper: predictResult.data.forecast_upper[idx],
+                lower: predictResult.data.forecast_lower[idx],
               }))}
             >
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="date" />
               <YAxis />
               <Tooltip />
-              <Line
-                type="monotone"
-                dataKey="forecast"
-                stroke="#1976d2"
-                strokeWidth={2}
-                name="Forecast"
-              />
-              <Line
-                type="monotone"
-                dataKey="lower"
-                stroke="#8884d8"
-                strokeDasharray="5 5"
-                name="95% CI Lower"
-              />
-              <Line
-                type="monotone"
-                dataKey="upper"
-                stroke="#8884d8"
-                strokeDasharray="5 5"
-                name="95% CI Upper"
-              />
+              <Line type="monotone" dataKey="forecast" stroke="#1976d2" />
+              <Line type="monotone" dataKey="upper" stroke="#2e7d32" />
+              <Line type="monotone" dataKey="lower" stroke="#c62828" />
             </LineChart>
           </ResponsiveContainer>
         </Box>
