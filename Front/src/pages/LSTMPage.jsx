@@ -9,12 +9,12 @@ import {
   LinearProgress,
   Grid,
   Alert,
-  MenuItem,
-  Select,
-  InputLabel,
   FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from "@mui/material";
-import { trainLSTM, predictLSTM, getLSTMModels } from "../api/api";
+import { trainLSTM, predictLSTM, getModels } from "../api/api";
 import {
   LineChart,
   Line,
@@ -28,8 +28,8 @@ import {
 const LSTMPage = () => {
   const [params, setParams] = useState({
     ticker: "^GSPC",
-    start: "2010-01-01",
-    end: "2025-05-22",
+    start: "2020-01-01",
+    end: "2025-04-08",
     sequence_length: 60,
     predict_days: 20,
   });
@@ -42,13 +42,13 @@ const LSTMPage = () => {
 
   useEffect(() => {
     const fetchModels = async () => {
-      const result = await getLSTMModels();
-      if (result.success) {
-        setModels(result.tickers);
+      const result = await getModels();
+      if (result.models?.lstm) {
+        setModels(result.models.lstm);
       }
     };
     fetchModels();
-  }, []);
+  }, [trainResult]); // Refresh models list after training
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -71,11 +71,11 @@ const LSTMPage = () => {
 
   const handlePredict = async (ticker) => {
     setLoading(true);
-    const result = await predictLSTM(
-      ticker,
-      params.predict_days,
-      params.sequence_length
-    );
+    setPredictResult(null);
+    const result = await predictLSTM({
+      ticker: ticker || params.ticker,
+      days: params.predict_days,
+    });
     setPredictResult(result);
     setLoading(false);
   };
@@ -192,16 +192,16 @@ const LSTMPage = () => {
         </Box>
       )}
 
-      {predictResult?.success && (
+      {predictResult?.success && predictResult.data && (
         <Box mt={4}>
           <Typography variant="h6" gutterBottom>
-            Forecast Results (Line Chart):
+            Forecast Results
           </Typography>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart
               data={predictResult.data.dates.map((date, idx) => ({
                 date,
-                price: predictResult.data.forecast[idx],
+                forecast: predictResult.data.forecast[idx],
               }))}
             >
               <CartesianGrid strokeDasharray="3 3" />
@@ -210,9 +210,10 @@ const LSTMPage = () => {
               <Tooltip />
               <Line
                 type="monotone"
-                dataKey="price"
+                dataKey="forecast"
                 stroke="#1976d2"
                 strokeWidth={2}
+                name="Forecast"
               />
             </LineChart>
           </ResponsiveContainer>

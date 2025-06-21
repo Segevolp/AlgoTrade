@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Container,
   TextField,
@@ -9,8 +9,12 @@ import {
   LinearProgress,
   Grid,
   Alert,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from "@mui/material";
-import { trainARIMA, predictARIMA } from "../api/api";
+import { trainARIMA, predictARIMA, getModels } from "../api/api";
 import {
   LineChart,
   Line,
@@ -33,6 +37,18 @@ const ArimaPage = () => {
   const [trainResult, setTrainResult] = useState(null);
   const [predictResult, setPredictResult] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [models, setModels] = useState([]);
+  const [selectedModel, setSelectedModel] = useState("");
+
+  useEffect(() => {
+    const fetchModels = async () => {
+      const result = await getModels();
+      if (result.models?.arima) {
+        setModels(result.models.arima);
+      }
+    };
+    fetchModels();
+  }, [trainResult]); // Refresh models list after training
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -53,9 +69,13 @@ const ArimaPage = () => {
     setLoading(false);
   };
 
-  const handlePredict = async () => {
+  const handlePredict = async (ticker) => {
     setLoading(true);
-    const result = await predictARIMA(params.predict_days);
+    setPredictResult(null);
+    const result = await predictARIMA({
+      ticker: ticker || params.ticker,
+      days: params.predict_days,
+    });
     setPredictResult(result);
     setLoading(false);
   };
@@ -137,17 +157,28 @@ const ArimaPage = () => {
               >
                 {loading ? <CircularProgress size={24} /> : "Train"}
               </Button>
-              <Button
-                variant="outlined"
-                color="secondary"
-                onClick={handlePredict}
-                disabled={loading || !trainResult?.success}
-              >
-                Predict
-              </Button>
             </Box>
           </Grid>
         </Grid>
+      </Box>
+
+      <Box mt={4}>
+        <FormControl fullWidth>
+          <InputLabel>Select a trained model to predict</InputLabel>
+          <Select
+            value={selectedModel}
+            onChange={(e) => {
+              setSelectedModel(e.target.value);
+              handlePredict(e.target.value);
+            }}
+          >
+            {models.map((ticker) => (
+              <MenuItem key={ticker} value={ticker}>
+                {ticker}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
       </Box>
 
       {trainResult && (
@@ -160,52 +191,49 @@ const ArimaPage = () => {
         </Box>
       )}
 
-      {predictResult?.success &&
-        Array.isArray(predictResult.data?.dates) &&
-        Array.isArray(predictResult.data?.forecast_mean) && (
-          <Box mt={4}>
-            <Typography variant="h6" gutterBottom>
-              10-Day Forecast with Confidence Intervals
-            </Typography>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart
-                data={predictResult.data.dates.map((date, idx) => ({
-                  date,
-                  forecast: predictResult.data.forecast_mean[idx],
-                  lower: predictResult.data.forecast_ci_lower[idx],
-                  upper: predictResult.data.forecast_ci_upper[idx],
-                }))}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis />
-                <Tooltip />
-                <Line
-                  type="monotone"
-                  dataKey="forecast"
-                  stroke="#1976d2"
-                  strokeWidth={2}
-                  name="Forecast"
-                />
-                <Line
-                  type="monotone"
-                  dataKey="lower"
-                  stroke="#8884d8"
-                  strokeDasharray="5 5"
-                  name="95% CI Lower"
-                />
-                <Line
-                  type="monotone"
-                  dataKey="upper"
-                  stroke="#8884d8"
-                  strokeDasharray="5 5"
-                  name="95% CI Upper"
-                />
-                {/* Optional: shaded area between upper and lower CI (Recharts doesn't natively support area-between-lines) */}
-              </LineChart>
-            </ResponsiveContainer>
-          </Box>
-        )}
+      {predictResult?.success && predictResult.data && (
+        <Box mt={4}>
+          <Typography variant="h6" gutterBottom>
+            Forecast with Confidence Intervals
+          </Typography>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart
+              data={predictResult.data.dates.map((date, idx) => ({
+                date,
+                forecast: predictResult.data.forecast_mean[idx],
+                lower: predictResult.data.forecast_ci[idx][0],
+                upper: predictResult.data.forecast_ci[idx][1],
+              }))}
+            >
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="date" />
+              <YAxis />
+              <Tooltip />
+              <Line
+                type="monotone"
+                dataKey="forecast"
+                stroke="#1976d2"
+                strokeWidth={2}
+                name="Forecast"
+              />
+              <Line
+                type="monotone"
+                dataKey="lower"
+                stroke="#8884d8"
+                strokeDasharray="5 5"
+                name="95% CI Lower"
+              />
+              <Line
+                type="monotone"
+                dataKey="upper"
+                stroke="#8884d8"
+                strokeDasharray="5 5"
+                name="95% CI Upper"
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </Box>
+      )}
     </Container>
   );
 };

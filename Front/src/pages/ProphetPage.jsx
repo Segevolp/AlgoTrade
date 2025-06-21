@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Container,
   TextField,
@@ -9,8 +9,12 @@ import {
   LinearProgress,
   Grid,
   Alert,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from "@mui/material";
-import { trainProphet, predictProphet } from "../api/api";
+import { trainProphet, predictProphet, getModels } from "../api/api";
 import {
   LineChart,
   Line,
@@ -24,14 +28,26 @@ import {
 const ProphetPage = () => {
   const [params, setParams] = useState({
     ticker: "^GSPC",
-    start: "2015-01-01",
-    end: "2025-05-22",
+    start: "2020-01-01",
+    end: "2025-04-08",
     predict_days: 20,
   });
 
-  const [loading, setLoading] = useState(false);
   const [trainResult, setTrainResult] = useState(null);
   const [predictResult, setPredictResult] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [models, setModels] = useState([]);
+  const [selectedModel, setSelectedModel] = useState("");
+
+  useEffect(() => {
+    const fetchModels = async () => {
+      const result = await getModels();
+      if (result.models?.prophet) {
+        setModels(result.models.prophet);
+      }
+    };
+    fetchModels();
+  }, [trainResult]); // Refresh models list after training
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -49,9 +65,13 @@ const ProphetPage = () => {
     setLoading(false);
   };
 
-  const handlePredict = async () => {
+  const handlePredict = async (ticker) => {
     setLoading(true);
-    const result = await predictProphet(params.predict_days);
+    setPredictResult(null);
+    const result = await predictProphet({
+      ticker: ticker || params.ticker,
+      days: params.predict_days,
+    });
     setPredictResult(result);
     setLoading(false);
   };
@@ -59,7 +79,7 @@ const ProphetPage = () => {
   return (
     <Container maxWidth="sm" sx={{ mt: 4 }}>
       <Typography variant="h4" gutterBottom>
-        Prophet Forecasting
+        Prophet Training & Prediction
       </Typography>
 
       {loading && (
@@ -114,29 +134,38 @@ const ProphetPage = () => {
               onChange={handleChange}
             />
           </Grid>
-          <Grid item xs={6}>
-            <Button
-              variant="contained"
-              color="primary"
-              fullWidth
-              onClick={handleTrain}
-              disabled={loading}
-            >
-              {loading ? <CircularProgress size={24} /> : "Train"}
-            </Button>
-          </Grid>
-          <Grid item xs={6}>
-            <Button
-              variant="contained"
-              color="secondary"
-              fullWidth
-              onClick={handlePredict}
-              disabled={loading}
-            >
-              {loading ? <CircularProgress size={24} /> : "Predict"}
-            </Button>
+          <Grid item xs={12}>
+            <Box display="flex" gap={2}>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleTrain}
+                disabled={loading}
+              >
+                {loading ? <CircularProgress size={24} /> : "Train"}
+              </Button>
+            </Box>
           </Grid>
         </Grid>
+      </Box>
+
+      <Box mt={4}>
+        <FormControl fullWidth>
+          <InputLabel>Select a trained model to predict</InputLabel>
+          <Select
+            value={selectedModel}
+            onChange={(e) => {
+              setSelectedModel(e.target.value);
+              handlePredict(e.target.value);
+            }}
+          >
+            {models.map((ticker) => (
+              <MenuItem key={ticker} value={ticker}>
+                {ticker}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
       </Box>
 
       {trainResult && (
@@ -149,27 +178,45 @@ const ProphetPage = () => {
         </Box>
       )}
 
-      {predictResult?.success && (
+      {predictResult?.success && predictResult.data && (
         <Box mt={4}>
           <Typography variant="h6" gutterBottom>
-            Prophet Forecast Results:
+            Forecast with Confidence Intervals
           </Typography>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart
               data={predictResult.data.dates.map((date, idx) => ({
                 date,
                 forecast: predictResult.data.forecast[idx],
-                upper: predictResult.data.forecast_upper[idx],
                 lower: predictResult.data.forecast_lower[idx],
+                upper: predictResult.data.forecast_upper[idx],
               }))}
             >
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="date" />
               <YAxis />
               <Tooltip />
-              <Line type="monotone" dataKey="forecast" stroke="#1976d2" />
-              <Line type="monotone" dataKey="upper" stroke="#2e7d32" />
-              <Line type="monotone" dataKey="lower" stroke="#c62828" />
+              <Line
+                type="monotone"
+                dataKey="forecast"
+                stroke="#1976d2"
+                strokeWidth={2}
+                name="Forecast"
+              />
+              <Line
+                type="monotone"
+                dataKey="lower"
+                stroke="#8884d8"
+                strokeDasharray="5 5"
+                name="95% CI Lower"
+              />
+              <Line
+                type="monotone"
+                dataKey="upper"
+                stroke="#8884d8"
+                strokeDasharray="5 5"
+                name="95% CI Upper"
+              />
             </LineChart>
           </ResponsiveContainer>
         </Box>
