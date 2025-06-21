@@ -1,0 +1,3 @@
+"""
+AlgoTrade algorithms package
+""" 

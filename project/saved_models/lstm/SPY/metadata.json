@@ -1,0 +1,15 @@
+{
+  "ticker": "SPY",
+  "start": "2020-01-01",
+  "end": "2025-06-21",
+  "sequence_length": 60,
+  "training_loss": 0.0005524024600163102,
+  "input_shape": [
+    60,
+    1
+  ],
+  "feature_names": [
+    "Close"
+  ],
+  "last_updated": "2025-06-21T16:19:05.511998"
+}

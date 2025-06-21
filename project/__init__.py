@@ -1,0 +1,3 @@
+"""
+AlgoTrade project package
+""" 
