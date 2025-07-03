@@ -63,10 +63,20 @@ export const trainARIMA = async (params = {}) => {
   }
 };
 
-export const predictARIMA = async (days = 10) => {
+export const predictARIMA = async (tickerOrDays = 10, days = null) => {
   try {
+    let params = {};
+    
+    // If days is provided, first parameter is ticker
+    if (days !== null) {
+      params = { ticker: tickerOrDays, days };
+    } else {
+      // If only one parameter, it's days (backward compatibility)
+      params = { days: tickerOrDays };
+    }
+    
     const response = await axios.get(`${API_BASE}/arima/predict`, {
-      params: { days },
+      params,
     });
     return response.data;
   } catch (err) {
@@ -74,6 +84,18 @@ export const predictARIMA = async (days = 10) => {
     return { success: false, error: err.message };
   }
 };
+
+export const getARIMAModels = async () => {
+  try {
+    const response = await axios.get(`${API_BASE}/arima/models`);
+    return response.data;
+  } catch (err) {
+    console.error("Get LSTM models error:", err);
+    return { success: false, error: err.message };
+  }
+};
+
+
 export const trainProphet = async (params = {}) => {
   try {
     const response = await axios.post(`${API_BASE}/prophet/train`, {

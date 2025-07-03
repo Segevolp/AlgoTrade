@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Container,
   TextField,
@@ -9,8 +9,12 @@ import {
   LinearProgress,
   Grid,
   Alert,
+  MenuItem,
+  Select,
+  InputLabel,
+  FormControl,
 } from "@mui/material";
-import { trainARIMA, predictARIMA } from "../api/api";
+import { trainARIMA, predictARIMA, getARIMAModels } from "../api/api";
 import {
   LineChart,
   Line,
@@ -33,6 +37,18 @@ const ArimaPage = () => {
   const [trainResult, setTrainResult] = useState(null);
   const [predictResult, setPredictResult] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [models, setModels] = useState([]);
+  const [selectedModel, setSelectedModel] = useState("");
+
+  useEffect(() => {
+    const fetchModels = async () => {
+      const result = await getARIMAModels(); // Assuming this API function exists
+      if (result.success) {
+        setModels(result.tickers);
+      }
+    };
+    fetchModels();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -59,6 +75,15 @@ const ArimaPage = () => {
     setPredictResult(result);
     setLoading(false);
   };
+
+  const handlePredictModel = async ticker => {
+    setLoading(true);
+    // use your axios wrapper which knows about API_BASE
+    const result = await predictARIMA(ticker, params.predict_days);
+    setPredictResult(result);
+    setLoading(false);
+  };
+
 
   return (
     <Container maxWidth="sm" sx={{ mt: 4 }}>
@@ -148,6 +173,25 @@ const ArimaPage = () => {
             </Box>
           </Grid>
         </Grid>
+      </Box>
+
+      <Box mt={4}>
+        <FormControl fullWidth>
+          <InputLabel>Select a trained model to predict</InputLabel>
+          <Select
+            value={selectedModel}
+            onChange={(e) => {
+              setSelectedModel(e.target.value);
+              handlePredictModel(e.target.value);
+            }}
+          >
+            {models.map((ticker) => (
+              <MenuItem key={ticker} value={ticker}>
+                {ticker}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
       </Box>
 
       {trainResult && (

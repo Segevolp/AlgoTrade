@@ -64,12 +64,20 @@ def train_arima_route():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
+@app.route('/arima/models', methods=['GET'])
+def list_arima_models_route():
+    from Services.arima_model_service import list_trained_models
+    try:
+        return jsonify({'success': True, 'tickers': list_trained_models()})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
 
 @app.route('/arima/predict', methods=['GET'])
 def predict_arima_route():
     try:
+        ticker = request.args.get('ticker', '^GSPC')
         days = int(request.args.get('days', 10))
-        forecast = predict_arima(days=days)
+        forecast = predict_arima(ticker=ticker, days=days)
         return jsonify({'success': True, 'data': forecast})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})

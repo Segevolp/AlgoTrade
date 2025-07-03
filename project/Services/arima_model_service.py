@@ -50,6 +50,8 @@ BASE_DIR      = os.path.dirname(os.path.abspath(__file__))
 MODEL_PATH    = os.path.join(BASE_DIR, 'arima_model.pkl')
 EXOG_PATH     = os.path.join(BASE_DIR, 'arima_exog.pkl')
 PARAMS_PATH   = os.path.join(BASE_DIR, 'arima_params.json')
+MODELS_DIR    = "models"
+FORECAST_PATH = os.path.join(MODELS_DIR, 'forecast.json')
 
 # ------------------------------------------------------------------
 # 3. Train function
@@ -65,6 +67,14 @@ def train_model(ticker: str = '^GSPC',
     Returns True on success, raises on failure.
     """
 
+    stock_dir = os.path.join(MODELS_DIR, ticker.replace('^','').replace('/','_'))
+    os.makedirs(stock_dir, exist_ok=True)
+
+    MODEL_PATH  = os.path.join(stock_dir, 'arima_model.pkl')
+    EXOG_PATH   = os.path.join(stock_dir, 'arima_exog.pkl')
+    PARAMS_PATH = os.path.join(stock_dir, 'arima_params.json')
+    DATA_PATH   = os.path.join(stock_dir, 'data.csv')
+
     if exog_tickers is None:
         exog_tickers = ['GLD', 'QQQ', '^TNX']
 
@@ -74,11 +84,12 @@ def train_model(ticker: str = '^GSPC',
     for t in exog_tickers:
         df_exo = fetch_close(t, start, end).rename(columns={'Close': t})
         exo_list.append(df_exo)
+        df_exo.index.name = 'ds'
 
     exog_data = pd.concat(exo_list, axis=1).ffill()
     df = pd.concat([data, exog_data], axis=1).dropna()
     df = df.asfreq('B').ffill()
-
+    df.index.name = 'ds'
     y = df['y']
     X = df[exog_tickers]
 
@@ -149,64 +160,73 @@ def train_model(ticker: str = '^GSPC',
     # 6. Persist the fitted model and exogenous DataFrame
     with open(MODEL_PATH, 'wb') as f:
         pickle.dump(final_model, f)
-
-    # Save the last-known exogenous DataFrame to disk (to construct future exog)
     X.to_pickle(EXOG_PATH)
+    df.to_csv(DATA_PATH, index=True)
 
+    
     return True
 
 
 # ------------------------------------------------------------------
 # 4. Predict function
 # ------------------------------------------------------------------
-def predict_next_days(days: int = 10) -> dict:
+def predict_next_days(ticker: str = '^GSPC', days: int = 10) -> dict:
     """
-    Loads the previously trained SARIMAX model and the saved exogenous DataFrame,
-    constructs a future exogenous DataFrame by repeating the last row, and returns
-    a dictionary with:
-      - 'forecast_mean': list of predicted values
-      - 'forecast_ci': list of [lower, upper] intervals for each day
-    Raises if the model or exog data does not exist.
+    Forecast the next *days* business days using the trained SARIMAX and exogenous series.
+    Returns a dict with 'dates', 'forecast_mean', 'forecast_ci_lower', and 'forecast_ci_upper'.
     """
+    # Load all saved state from ticker directory
+    model, exog, params, df = load_state(ticker)
 
-    # 1. Ensure model and exog-data exist
-    if not os.path.exists(MODEL_PATH) or not os.path.exists(EXOG_PATH) or not os.path.exists(PARAMS_PATH):
-        raise RuntimeError("Model or exogenous data not found. Please call /arima/train first.")
-
-    # 2. Load JSON to get exogenous variable names (and their order)
-    with open(PARAMS_PATH, 'r') as f:
-        params = json.load(f)
-
-    exog_tickers = params['exog_tickers']
-
-    # 3. Load the pickled model and exogenous DataFrame
-    with open(MODEL_PATH, 'rb') as f:
-        model = pickle.load(f)
-
-    X = pd.read_pickle(EXOG_PATH)
-
-    # 4. Build future_exog by repeating the last row
-    last_row = X.iloc[-1].values.reshape(1, -1)
+    # Build future exogenous by repeating the last row
+    last_row = exog.iloc[-1].values.reshape(1, -1)
     future_exog = pd.DataFrame(
         np.tile(last_row, (days, 1)),
-        columns=exog_tickers,
+        columns=params['exog_tickers'],
         index=pd.date_range(
-            start=X.index[-1] + pd.tseries.offsets.BDay(),
-            periods=days, freq='B'
+            start=exog.index[-1] + pd.tseries.offsets.BDay(),
+            periods=days,
+            freq='B'
         )
     )
 
-    # 5. Generate forecast
+    # Generate forecast
     forecast = model.get_forecast(steps=days, exog=future_exog)
-    forecast_mean = forecast.predicted_mean
-    forecast_ci = forecast.conf_int(alpha=0.05)
+    mean = forecast.predicted_mean
+    ci   = forecast.conf_int(alpha=0.05)
 
-    # 6. Return as serializable structures
     return {
-        'dates': [d.strftime('%Y-%m-%d') for d in forecast_mean.index],
-        'forecast_mean': forecast_mean.tolist(),
-        'forecast_ci_lower': forecast_ci.iloc[:, 0].tolist(),
-        'forecast_ci_upper': forecast_ci.iloc[:, 1].tolist()
+        'dates':             mean.index.strftime('%Y-%m-%d').tolist(),
+        'forecast_mean':     mean.tolist(),
+        'forecast_ci_lower': ci.iloc[:, 0].tolist(),
+        'forecast_ci_upper': ci.iloc[:, 1].tolist()
     }
 
+def load_state(ticker: str):
+    """
+    Load model, exogenous DataFrame, params JSON & full history for *ticker*.
+    """
+    stock_dir   = os.path.join(MODELS_DIR, ticker.replace('^','').replace('/','_'))
+    MODEL_PATH  = os.path.join(stock_dir, 'arima_model.pkl')
+    EXOG_PATH   = os.path.join(stock_dir, 'arima_exog.pkl')
+    PARAMS_PATH = os.path.join(stock_dir, 'arima_params.json')
+    DATA_PATH   = os.path.join(stock_dir, 'data.csv')
 
+    model  = pickle.load(open(MODEL_PATH, 'rb'))
+    exog   = pd.read_pickle(EXOG_PATH)
+    params = json.load(open(PARAMS_PATH))
+    df     = pd.read_csv(DATA_PATH, index_col=0, parse_dates=True)
+    return model, exog, params, df
+
+def get_cached_forecast() -> dict | None:
+    """If you ever write out a forecast.json, load & return it here."""
+    if os.path.exists(FORECAST_PATH):
+        return pd.read_json(FORECAST_PATH).to_dict(orient='list')
+    return None
+
+def list_trained_models() -> list[str]:
+    """Returns all tickers for which a model folder exists."""
+    return [
+        name for name in os.listdir(MODELS_DIR)
+        if os.path.isdir(os.path.join(MODELS_DIR, name))
+    ]
