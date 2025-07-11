@@ -1,0 +1,553 @@
+.portfolio-page {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  min-height: 100vh;
+}
+
+.portfolio-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #e1e1e1;
+}
+
+.portfolio-header h1 {
+  margin: 0;
+  color: #333;
+  font-size: 2.5rem;
+}
+
+.portfolio-header p {
+  margin: 0.5rem 0 0 0;
+  color: #666;
+  font-size: 1.1rem;
+}
+
+.create-portfolio-btn {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.create-portfolio-btn:hover {
+  background: #0056b3;
+  transform: translateY(-2px);
+}
+
+.portfolio-loading {
+  text-align: center;
+  padding: 3rem;
+  font-size: 1.2rem;
+  color: #666;
+}
+
+.error-message {
+  background: #fee;
+  border: 1px solid #fcc;
+  color: #c33;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.portfolio-content {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 2rem;
+}
+
+.portfolio-sidebar {
+  background: #f8f9fa;
+  padding: 1.5rem;
+  border-radius: 12px;
+  height: fit-content;
+}
+
+.portfolio-sidebar h3 {
+  margin: 0 0 1rem 0;
+  color: #333;
+  font-size: 1.3rem;
+}
+
+.no-portfolios {
+  text-align: center;
+  color: #666;
+  font-style: italic;
+  padding: 2rem 0;
+}
+
+.portfolio-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.portfolio-item {
+  background: white;
+  padding: 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+  position: relative;
+}
+
+.portfolio-item:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.portfolio-item.active {
+  border-color: #007bff;
+  background: #e3f2fd;
+}
+
+.portfolio-item h4 {
+  margin: 0 0 0.5rem 0;
+  color: #333;
+  font-size: 1.1rem;
+}
+
+.portfolio-item p {
+  margin: 0.25rem 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.delete-portfolio-btn {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: none;
+  border: none;
+  color: #dc3545;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.delete-portfolio-btn:hover {
+  background: #dc3545;
+  color: white;
+}
+
+.portfolio-main {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.portfolio-details {
+  margin-bottom: 2rem;
+}
+
+.portfolio-details h2 {
+  margin: 0 0 1rem 0;
+  color: #333;
+  font-size: 2rem;
+}
+
+.portfolio-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.stat {
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.stat span:first-child {
+  font-weight: 500;
+  color: #666;
+}
+
+.stat span:last-child {
+  font-weight: 600;
+  color: #333;
+  font-size: 1.1rem;
+}
+
+.add-item-btn {
+  background: #28a745;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.add-item-btn:hover {
+  background: #218838;
+  transform: translateY(-2px);
+}
+
+.portfolio-items h3 {
+  margin: 0 0 1rem 0;
+  color: #333;
+  font-size: 1.5rem;
+}
+
+.no-items {
+  text-align: center;
+  color: #666;
+  font-style: italic;
+  padding: 2rem 0;
+}
+
+.items-table {
+  background: #f8f9fa;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.table-header {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr 2fr 1fr;
+  background: #007bff;
+  color: white;
+  padding: 1rem;
+  font-weight: 600;
+  gap: 1rem;
+}
+
+.table-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr 2fr 1fr;
+  padding: 1rem;
+  border-bottom: 1px solid #e1e1e1;
+  gap: 1rem;
+  align-items: center;
+  background: white;
+}
+
+.table-row:last-child {
+  border-bottom: none;
+}
+
+.table-row:hover {
+  background: #f8f9fa;
+}
+
+.ticker {
+  font-weight: 600;
+  color: #007bff;
+}
+
+.notes {
+  color: #666;
+  font-size: 0.9rem;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.edit-btn, .delete-btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.edit-btn {
+  background: #ffc107;
+  color: #333;
+}
+
+.edit-btn:hover {
+  background: #e0a800;
+}
+
+.delete-btn {
+  background: #dc3545;
+  color: white;
+}
+
+.delete-btn:hover {
+  background: #c82333;
+}
+
+.no-portfolio-selected {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: #666;
+}
+
+.no-portfolio-selected h2 {
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-content h3 {
+  margin: 0 0 1.5rem 0;
+  color: #333;
+  font-size: 1.5rem;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #333;
+}
+
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #e1e1e1;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.2s ease;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #007bff;
+}
+
+.form-group textarea {
+  height: 80px;
+  resize: vertical;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
+}
+
+.modal-actions button {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+}
+
+.modal-actions button[type="button"] {
+  background: #6c757d;
+  color: white;
+}
+
+.modal-actions button[type="button"]:hover {
+  background: #545b62;
+}
+
+.modal-actions button[type="submit"] {
+  background: #007bff;
+  color: white;
+}
+
+.modal-actions button[type="submit"]:hover {
+  background: #0056b3;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .portfolio-content {
+    grid-template-columns: 1fr;
+  }
+  
+  .portfolio-sidebar {
+    order: 2;
+  }
+  
+  .portfolio-main {
+    order: 1;
+  }
+  
+  .portfolio-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .portfolio-stats {
+    grid-template-columns: 1fr;
+  }
+  
+  .table-header,
+  .table-row {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+  
+  .table-header {
+    display: none;
+  }
+  
+  .table-row {
+    display: block;
+    padding: 1rem;
+    border: 1px solid #e1e1e1;
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+  }
+  
+  .table-row > span {
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+  
+  .table-row > span:before {
+    content: attr(data-label) ": ";
+    font-weight: 600;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .portfolio-page {
+    background: #1a1a1a;
+    color: white;
+  }
+  
+  .portfolio-header h1 {
+    color: white;
+  }
+  
+  .portfolio-header p {
+    color: #ccc;
+  }
+  
+  .portfolio-sidebar {
+    background: #2d2d2d;
+  }
+  
+  .portfolio-sidebar h3 {
+    color: white;
+  }
+  
+  .portfolio-item {
+    background: #333;
+    color: white;
+  }
+  
+  .portfolio-item.active {
+    background: #1a3a5c;
+  }
+  
+  .portfolio-main {
+    background: #2d2d2d;
+    color: white;
+  }
+  
+  .portfolio-details h2 {
+    color: white;
+  }
+  
+  .stat {
+    background: #333;
+  }
+  
+  .stat span:first-child {
+    color: #ccc;
+  }
+  
+  .stat span:last-child {
+    color: white;
+  }
+  
+  .items-table {
+    background: #333;
+  }
+  
+  .table-row {
+    background: #333;
+    border-bottom-color: #555;
+  }
+  
+  .table-row:hover {
+    background: #404040;
+  }
+  
+  .modal-content {
+    background: #2d2d2d;
+    color: white;
+  }
+  
+  .modal-content h3 {
+    color: white;
+  }
+  
+  .form-group label {
+    color: white;
+  }
+  
+  .form-group input,
+  .form-group textarea {
+    background: #333;
+    border-color: #555;
+    color: white;
+  }
+  
+  .form-group input:focus,
+  .form-group textarea:focus {
+    border-color: #007bff;
+  }
+} 
