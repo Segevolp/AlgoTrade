@@ -8,7 +8,7 @@ from tensorflow.keras.models import Sequential, load_model
 from tensorflow.keras.layers import LSTM, Dense
 import joblib
 
-MODELS_DIR = "models"
+MODELS_DIR = "model/lstm_models"
 MODEL_PATH = os.path.join(MODELS_DIR, "model.h5")
 SCALER_PATH = os.path.join(MODELS_DIR, "scaler.pkl")
 DATA_PATH = os.path.join(MODELS_DIR, "data.csv")

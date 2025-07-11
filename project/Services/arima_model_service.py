@@ -50,7 +50,7 @@ BASE_DIR      = os.path.dirname(os.path.abspath(__file__))
 MODEL_PATH    = os.path.join(BASE_DIR, 'arima_model.pkl')
 EXOG_PATH     = os.path.join(BASE_DIR, 'arima_exog.pkl')
 PARAMS_PATH   = os.path.join(BASE_DIR, 'arima_params.json')
-MODELS_DIR    = "models"
+MODELS_DIR    = "models/arima_models"
 FORECAST_PATH = os.path.join(MODELS_DIR, 'forecast.json')
 
 # ------------------------------------------------------------------

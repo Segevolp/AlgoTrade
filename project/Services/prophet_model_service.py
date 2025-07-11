@@ -6,7 +6,7 @@ from prophet import Prophet
 import joblib
 import json
 
-MODELS_DIR = "models"
+MODELS_DIR = "models/prophet_models"
 os.makedirs(MODELS_DIR, exist_ok=True)
 
 
