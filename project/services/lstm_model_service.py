@@ -7,7 +7,7 @@ from sklearn.preprocessing import MinMaxScaler
 from tensorflow.keras.models import Sequential, load_model
 from tensorflow.keras.layers import LSTM, Dense
 import joblib
-
+#aa
 MODELS_DIR = "model/lstm_models"
 MODEL_PATH = os.path.join(MODELS_DIR, "model.h5")
 SCALER_PATH = os.path.join(MODELS_DIR, "scaler.pkl")
