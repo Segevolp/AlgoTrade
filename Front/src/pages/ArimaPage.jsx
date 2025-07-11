@@ -50,12 +50,20 @@ const ArimaPage = () => {
     fetchModels();
   }, []);
 
+  // Check if current ticker has a trained model
+  const hasTrainedModel = models.includes(params.ticker);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setParams((prev) => ({
       ...prev,
       [name]: name === "predict_days" ? parseInt(value) : value,
     }));
+
+    // If ticker changed, clear prediction results since they're for a different stock
+    if (name === "ticker") {
+      setPredictResult(null);
+    }
   };
 
   const handleTrain = async () => {
@@ -71,19 +79,18 @@ const ArimaPage = () => {
 
   const handlePredict = async () => {
     setLoading(true);
-    const result = await predictARIMA(params.predict_days);
+    const result = await predictARIMA(params.ticker, params.predict_days);
     setPredictResult(result);
     setLoading(false);
   };
 
-  const handlePredictModel = async ticker => {
+  const handlePredictModel = async (ticker) => {
     setLoading(true);
     // use your axios wrapper which knows about API_BASE
     const result = await predictARIMA(ticker, params.predict_days);
     setPredictResult(result);
     setLoading(false);
   };
-
 
   return (
     <Container maxWidth="sm" sx={{ mt: 4 }}>
@@ -166,9 +173,14 @@ const ArimaPage = () => {
                 variant="outlined"
                 color="secondary"
                 onClick={handlePredict}
-                disabled={loading || !trainResult?.success}
+                disabled={
+                  loading || (!trainResult?.success && !hasTrainedModel)
+                }
               >
-                Predict
+                Predict{" "}
+                {hasTrainedModel &&
+                  !trainResult?.success &&
+                  "(Model Available)"}
               </Button>
             </Box>
           </Grid>
@@ -200,6 +212,15 @@ const ArimaPage = () => {
             {trainResult.success
               ? "Training completed successfully."
               : trainResult.error}
+          </Alert>
+        </Box>
+      )}
+
+      {!trainResult && hasTrainedModel && (
+        <Box mt={3}>
+          <Alert severity="info">
+            A trained model is available for {params.ticker}. You can predict
+            directly without retraining.
           </Alert>
         </Box>
       )}
