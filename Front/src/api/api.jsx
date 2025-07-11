@@ -168,6 +168,19 @@ export const deletePortfolioItem = async (portfolioId, itemId) => {
   }
 };
 
+export const predictPortfolioEarnings = async (portfolioId, predictionData) => {
+  try {
+    const response = await axios.post(
+      `${API_BASE}/portfolios/${portfolioId}/predict`,
+      predictionData
+    );
+    return response.data;
+  } catch (err) {
+    console.error("Predict portfolio earnings error:", err);
+    return { success: false, error: err.response?.data?.error || err.message };
+  }
+};
+
 // ==================== EXISTING API ENDPOINTS ====================
 
 export const hello = async () => {

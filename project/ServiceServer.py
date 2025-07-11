@@ -11,6 +11,7 @@ from models import db, bcrypt, User, Portfolio, PortfolioItem
 from Services.lstm_model_service import train_model, predict_next_days
 from Services.arima_model_service import train_model as train_arima, predict_next_days as predict_arima
 from Services.prophet_model_service import train_model as train_prophet, predict_next_days as predict_prophet
+from Services.portfolio_prediction_service import predict_portfolio_earnings
 
 app = Flask(__name__)
 CORS(app)
@@ -280,6 +281,44 @@ def delete_portfolio_item(portfolio_id, item_id):
         
     except Exception as e:
         db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)})
+
+# ==================== PORTFOLIO EARNINGS PREDICTION ====================
+
+@app.route('/portfolios/<int:portfolio_id>/predict', methods=['POST'])
+@jwt_required()
+def predict_portfolio_earnings_route(portfolio_id):
+    try:
+        user_id = int(get_jwt_identity())
+        data = request.get_json()
+        
+        # Verify portfolio belongs to user
+        portfolio = Portfolio.query.filter_by(id=portfolio_id, user_id=user_id).first()
+        if not portfolio:
+            return jsonify({'success': False, 'error': 'Portfolio not found'})
+        
+        # Get prediction parameters
+        method = data.get('method', 'average')  # 'lstm', 'arima', 'prophet', or 'average'
+        days = int(data.get('days', 30))  # Number of days to predict
+        
+        # Validate method
+        if method not in ['lstm', 'arima', 'prophet', 'average']:
+            return jsonify({'success': False, 'error': 'Invalid prediction method. Use: lstm, arima, prophet, or average'})
+        
+        # Get portfolio items
+        if not portfolio.items:
+            return jsonify({'success': False, 'error': 'Portfolio is empty. Add some stocks first.'})
+        
+        # Convert portfolio items to the format expected by the prediction service
+        portfolio_items = [item.to_dict() for item in portfolio.items]
+        
+        # Get predictions
+        result = predict_portfolio_earnings(portfolio_items, method, days)
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        print(f"Portfolio prediction error: {e}")
         return jsonify({'success': False, 'error': str(e)})
 
 @app.route('/test-auth', methods=['GET'])
