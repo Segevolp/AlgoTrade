@@ -67,7 +67,7 @@ const ProphetPage = () => {
 
   const handlePredict = async () => {
     setLoading(true);
-    const result = await predictProphet(params.predict_days);
+    const result = await predictProphet(params.ticker, params.predict_days);
     setPredictResult(result);
     setLoading(false);
   };
