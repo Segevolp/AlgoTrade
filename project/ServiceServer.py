@@ -98,10 +98,20 @@ def train_prophet_route():
 @app.route('/prophet/predict', methods=['GET'])
 def predict_prophet_route():
     try:
+        ticker = request.args.get('ticker', '^GSPC')
         days = int(request.args.get('days', 10))
-        forecast = predict_prophet(days=days)
+        forecast = predict_prophet(ticker=ticker, days=days)
         return jsonify({'success': True, 'data': forecast})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/prophet/models', methods=['GET'])
+def list_prophet_models():
+    from Services.prophet_model_service import list_trained_models
+    try:
+        return jsonify({'success': True, 'tickers': list_trained_models()})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
 if __name__ == '__main__':
     app.run(debug=True, port=5555)
