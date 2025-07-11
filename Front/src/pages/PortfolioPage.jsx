@@ -9,6 +9,7 @@ import {
   predictPortfolioEarnings,
 } from "../api/api";
 import { useAuth } from "../contexts/AuthContext";
+import TickerAutocomplete from "../components/TickerAutocomplete";
 import "./PortfolioPage.css";
 
 const PortfolioPage = () => {
@@ -465,14 +466,15 @@ const PortfolioPage = () => {
             <form onSubmit={handleAddItem}>
               <div className="form-group">
                 <label htmlFor="ticker">Ticker Symbol</label>
-                <input
-                  type="text"
-                  id="ticker"
+                <TickerAutocomplete
+                  name="ticker"
                   value={newItem.ticker}
                   onChange={(e) =>
                     setNewItem({ ...newItem, ticker: e.target.value })
                   }
-                  placeholder="e.g., AAPL, GOOGL"
+                  placeholder="e.g., AAPL, GOOGL, ^GSPC"
+                  size="small"
+                  fullWidth={false}
                   required
                 />
               </div>
@@ -539,13 +541,15 @@ const PortfolioPage = () => {
             <form onSubmit={handleUpdateItem}>
               <div className="form-group">
                 <label htmlFor="editTicker">Ticker Symbol</label>
-                <input
-                  type="text"
-                  id="editTicker"
+                <TickerAutocomplete
+                  name="ticker"
                   value={editingItem.ticker}
                   onChange={(e) =>
                     setEditingItem({ ...editingItem, ticker: e.target.value })
                   }
+                  placeholder="e.g., AAPL, GOOGL, ^GSPC"
+                  size="small"
+                  fullWidth={false}
                   required
                 />
               </div>

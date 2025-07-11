@@ -15,6 +15,7 @@ import {
   FormControl,
 } from "@mui/material";
 import { trainLSTM, predictLSTM, getLSTMModels } from "../api/api";
+import TickerAutocomplete from "../components/TickerAutocomplete";
 import {
   LineChart,
   Line,
@@ -98,12 +99,12 @@ const LSTMPage = () => {
       <Box component="form" noValidate autoComplete="off">
         <Grid container spacing={2}>
           <Grid item xs={12}>
-            <TextField
-              fullWidth
-              label="Ticker"
+            <TickerAutocomplete
               name="ticker"
+              label="Ticker"
               value={params.ticker}
               onChange={handleChange}
+              placeholder="e.g., AAPL, ^GSPC, TSLA"
             />
           </Grid>
           <Grid item xs={6}>

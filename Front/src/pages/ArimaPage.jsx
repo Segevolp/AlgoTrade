@@ -15,6 +15,7 @@ import {
   FormControl,
 } from "@mui/material";
 import { trainARIMA, predictARIMA, getARIMAModels } from "../api/api";
+import TickerAutocomplete from "../components/TickerAutocomplete";
 import {
   LineChart,
   Line,
@@ -30,7 +31,7 @@ const ArimaPage = () => {
     ticker: "^GSPC",
     start: "2020-01-01",
     end: "2025-04-08",
-    exog_tickers: "GLD,QQQ,^TNX",
+    exog_tickers: ["GLD", "QQQ", "^TNX"],
     predict_days: 10,
   });
 
@@ -71,7 +72,7 @@ const ArimaPage = () => {
     setTrainResult(null);
     const result = await trainARIMA({
       ...params,
-      exog_tickers: params.exog_tickers.split(",").map((s) => s.trim()),
+      exog_tickers: params.exog_tickers, // Already an array now
     });
     setTrainResult(result);
     setLoading(false);
@@ -110,12 +111,12 @@ const ArimaPage = () => {
       <Box component="form" noValidate autoComplete="off">
         <Grid container spacing={2}>
           <Grid item xs={12}>
-            <TextField
-              fullWidth
-              label="Ticker"
+            <TickerAutocomplete
               name="ticker"
+              label="Ticker"
               value={params.ticker}
               onChange={handleChange}
+              placeholder="e.g., AAPL, ^GSPC, TSLA"
             />
           </Grid>
           <Grid item xs={6}>
@@ -141,12 +142,14 @@ const ArimaPage = () => {
             />
           </Grid>
           <Grid item xs={12}>
-            <TextField
-              fullWidth
-              label="Exogenous Tickers (comma-separated)"
+            <TickerAutocomplete
               name="exog_tickers"
+              label="Exogenous Tickers"
               value={params.exog_tickers}
               onChange={handleChange}
+              placeholder="e.g., GLD, QQQ, ^TNX"
+              multiple={true}
+              helperText="Select multiple tickers that influence the main ticker"
             />
           </Grid>
           <Grid item xs={12}>
