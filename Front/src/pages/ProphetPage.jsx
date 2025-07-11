@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Container,
   TextField,
@@ -9,8 +9,12 @@ import {
   LinearProgress,
   Grid,
   Alert,
+  MenuItem,
+  Select,
+  InputLabel,
+  FormControl,
 } from "@mui/material";
-import { trainProphet, predictProphet } from "../api/api";
+import { trainProphet, predictProphet, getProphetModels } from "../api/api";
 import {
   LineChart,
   Line,
@@ -32,6 +36,18 @@ const ProphetPage = () => {
   const [loading, setLoading] = useState(false);
   const [trainResult, setTrainResult] = useState(null);
   const [predictResult, setPredictResult] = useState(null);
+  const [models, setModels] = useState([]);
+  const [selectedModel, setSelectedModel] = useState("");
+
+  useEffect(() => {
+    const fetchModels = async () => {
+      const result = await getProphetModels();
+      if (result.success) {
+        setModels(result.tickers);
+      }
+    };
+    fetchModels();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -52,6 +68,13 @@ const ProphetPage = () => {
   const handlePredict = async () => {
     setLoading(true);
     const result = await predictProphet(params.predict_days);
+    setPredictResult(result);
+    setLoading(false);
+  };
+
+  const handlePredictModel = async (ticker) => {
+    setLoading(true);
+    const result = await predictProphet(params.predict_days, ticker);
     setPredictResult(result);
     setLoading(false);
   };
@@ -137,6 +160,26 @@ const ProphetPage = () => {
             </Button>
           </Grid>
         </Grid>
+      </Box>
+
+      <Box mt={4}>
+        <FormControl fullWidth>
+          <InputLabel>Select a trained model to predict</InputLabel>
+          <Select
+            value={selectedModel}
+            onChange={(e) => {
+              setSelectedModel(e.target.value);
+              handlePredictModel(e.target.value);
+            }}
+            disabled={loading}
+          >
+            {models.map((ticker) => (
+              <MenuItem key={ticker} value={ticker}>
+                {ticker}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
       </Box>
 
       {trainResult && (

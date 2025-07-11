@@ -110,14 +110,28 @@ export const trainProphet = async (params = {}) => {
   }
 };
 
-export const predictProphet = async (days = 10) => {
+export const predictProphet = async (days = 10, ticker = null) => {
   try {
+    const params = { days };
+    if (ticker) {
+      params.ticker = ticker;
+    }
     const response = await axios.get(`${API_BASE}/prophet/predict`, {
-      params: { days },
+      params,
     });
     return response.data;
   } catch (err) {
     console.error("Predict Prophet error:", err);
+    return { success: false, error: err.message };
+  }
+};
+
+export const getProphetModels = async () => {
+  try {
+    const response = await axios.get(`${API_BASE}/prophet/models`);
+    return response.data;
+  } catch (err) {
+    console.error("Get Prophet models error:", err);
     return { success: false, error: err.message };
   }
 };
